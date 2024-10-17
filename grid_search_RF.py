@@ -36,24 +36,24 @@ param_grid_rf = {
 # Generar combinaciones para Random Forest
 keys_rf, values_rf = zip(*param_grid_rf.items())
 combinations_rf = [dict(zip(keys_rf, v)) for v in itertools.product(*values_rf)]
+# print("Numero de combinaciones", len(combinations_rf))
 
 
-# Función a paralelizar
-def evaluate_set(hyperparameter_set, lock, X_train, y_train, X_test, y_test):
-    """
-    Evaluate a set of hyperparameters
-    Args:
-    hyperparameter_set: a list with the set of hyperparameters to be evaluated
-    """
+# Funcion a paralelizar
+def evaluate_set(hyperparameter_set, lock, X_train, y_train, X_test, y_test, results):
     for s in hyperparameter_set:
         clf = RandomForestClassifier()
-        clf.set_params(n_estimators=s['n_estimators'], criterion=s['criterion'])
+        clf.set_params(n_estimators=s['n_estimators'], criterion=s['criterion'],
+                       )
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
+
+        accuracy = accuracy_score(y_test, y_pred)  # evaluar con accuracy
 
         # Exclusión mutua
         lock.acquire()
         print(f'Accuracy en el proceso con params {s}:', accuracy_score(y_test, y_pred))
+        results.append((s, accuracy))  # Almacenar la combinación y la precisión
         lock.release()
 
 
@@ -107,10 +107,14 @@ if __name__ == '__main__':
     splits = nivelacion_cargas(combinations_rf, N_THREADS)
     lock = multiprocess.Lock()
 
+    manager = multiprocess.Manager()
+    lock = manager.Lock()  # Bloqueo compartido
+    results = manager.list()
+
     for i in range(N_THREADS):
         # Se generan los procesos de procesamiento
         threads.append(
-            multiprocess.Process(target=evaluate_set, args=(splits[i], lock, X_train, y_train, X_test, y_test)))
+            multiprocess.Process(target=evaluate_set, args=(splits[i], lock, X_train, y_train, X_test, y_test, results)))
 
     start_time = time.perf_counter()
 
@@ -125,3 +129,10 @@ if __name__ == '__main__':
     finish_time = time.perf_counter()
     print(f"Program finished in {finish_time - start_time} seconds")
 
+    # Tomar la mejor combinacion de hiperparametros
+    best_hyperparams = max(results, key=lambda x: x[1])  # Obtener la mejor precisión
+    best_params, best_accuracy = best_hyperparams
+    print(f"\nMejor combinación de hiperparámetros: {best_params}")
+    print(f"Mejor precisión: {best_accuracy}")
+
+    print(f"Program finished in {finish_time - start_time} seconds")
