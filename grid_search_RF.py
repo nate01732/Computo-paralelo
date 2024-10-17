@@ -64,9 +64,11 @@ def preprocesar_dataset(archivo):
 
     conteo_clases = dataset['Class'].value_counts()  # contar el numero de instancias de cada clase
 
+    """
     # imprimir el conteo de clases inicial
     print("Conteo de clases:")
     print(conteo_clases)
+    """
 
     clase_min = conteo_clases.min()  # Se obtiene el minimo de instancias por clase para balancear el dataset
     nuevo_dataset = []
@@ -80,9 +82,12 @@ def preprocesar_dataset(archivo):
     dataset_balanced = pd.concat(nuevo_dataset).reset_index(drop=True)
     dataset_balanced = dataset_balanced.sort_values(by='Class').reset_index(drop=True)
 
+    """
     # imprimir el conteo de instancias por clase actual
     print("\nConteo de clases (despues de preprocesar):")
     print(dataset_balanced['Class'].value_counts())
+    """
+
 
     return dataset_balanced
 
@@ -127,12 +132,16 @@ if __name__ == '__main__':
         thread.join()
 
     finish_time = time.perf_counter()
-    print(f"Program finished in {finish_time - start_time} seconds")
 
     # Tomar la mejor combinacion de hiperparametros
     best_hyperparams = max(results, key=lambda x: x[1])  # Obtener la mejor precisión
     best_params, best_accuracy = best_hyperparams
-    print(f"\nMejor combinación de hiperparámetros: {best_params}")
-    print(f"Mejor precisión: {best_accuracy}")
-
+    print(f"\nMejor combinacion de hiperparametros: {best_params}")
+    print(f"Mejor precision: {best_accuracy}")
     print(f"Program finished in {finish_time - start_time} seconds")
+
+
+"""
+Comando para guardar la salida en un archivo .log
+python grid_search_RF.py > GSRF.log
+"""
