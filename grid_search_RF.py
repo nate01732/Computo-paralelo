@@ -25,10 +25,12 @@ def nivelacion_cargas(D, n_p):
     return out
 
 
-# Parámetros para Random Forest
+# Parametros para Random Forest
 param_grid_rf = {
     'n_estimators': [10, 20, 40, 100],
-    'criterion': ['gini', 'entropy', 'log_loss']
+    'criterion': ['gini', 'entropy', 'log_loss'],
+    'max_depth': [10, 15, 20],
+    'max_features': [5, 7, 9]
 }
 
 # Generar combinaciones para Random Forest
