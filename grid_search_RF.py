@@ -108,8 +108,8 @@ if __name__ == '__main__':
     lock = multiprocess.Lock()
 
     manager = multiprocess.Manager()
-    lock = manager.Lock()  # Bloqueo compartido
-    results = manager.list()
+    lock = manager.Lock()
+    results = manager.list()  # lista compartida para que los procesos guarden la informacion
 
     for i in range(N_THREADS):
         # Se generan los procesos de procesamiento
