@@ -81,3 +81,53 @@ def preprocesar_dataset(archivo):
     print(dataset_balanced['Class'].value_counts())
 
     return dataset_balanced
+
+if __name__ == '__main__':
+    # Ruta del archivo
+    ruta = "Brain_Tumor.csv"
+
+    # Preprocesar el dataset
+    dataset_balanceado = preprocesar_dataset(ruta)
+
+    # Separar características y etiquetas
+    X = dataset_balanceado.drop(columns=['Class']).to_numpy()  # convertir a numpy array
+    y = dataset_balanceado['Class'].to_numpy()  # Convertir a numpy array
+
+    # Separar en conjunto de entrenamiento y prueba
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.20)
+
+    # Definicion de los procesos
+    threads = []
+    N_THREADS = 7
+    splits = nivelacion_cargas(combinations_knn, N_THREADS)
+    lock = multiprocess.Lock()
+
+    manager = multiprocess.Manager()
+    lock = manager.Lock()  # Bloqueo compartido
+    results = manager.list()
+
+    for i in range(N_THREADS):
+        # Se generan los procesos de procesamiento
+        threads.append(
+            multiprocess.Process(target=evaluate_set, args=(splits[i], lock, X_train, y_train, X_test, y_test, results)))
+
+    start_time = time.perf_counter()  # inicio de tiempo
+
+    # Se lanzan a ejecución
+    for thread in threads:
+        thread.start()
+
+    # y se espera a que todos terminen
+    for thread in threads:
+        thread.join()
+
+    finish_time = time.perf_counter()
+    print(f"Program finished in {finish_time - start_time} seconds")
+
+    # Tomar la mejor combinacion de hiperparametros
+    best_hyperparams = max(results, key=lambda x: x[1])  # Obtener la mejor precisión
+    best_params, best_accuracy = best_hyperparams
+    print(f"\nMejor combinación de hiperparámetros: {best_params}")
+    print(f"Mejor precisión: {best_accuracy}")
+
+    print(f"Program finished in {finish_time - start_time} seconds")
