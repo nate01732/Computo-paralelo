@@ -53,11 +53,11 @@ def evaluate_set(hyperparameter_set, lock, X_train, y_train, X_test, y_test, res
         # Exclusión mutua
         lock.acquire()
         print(f'Accuracy en el proceso con params {s}:', accuracy_score(y_test, y_pred))
-        results.append((s, accuracy))  # Almacenar la combinación y la precisión
+        results.append((s, accuracy))  # Guardar la combinacion de hiperparametros y el accuracy
         lock.release()
 
 
-# Función para preprocesar el dataset
+# Funcion para preprocesar el dataset
 def preprocesar_dataset(archivo):
     dataset = pd.read_csv(archivo)
     dataset = dataset.drop(columns=["Image"])  # eliminar la primera columna
@@ -95,13 +95,13 @@ if __name__ == '__main__':
     dataset_balanceado = preprocesar_dataset(ruta)
 
     # Separar características y etiquetas
-    X = dataset_balanceado.drop(columns=['Class']).to_numpy()  # Convertir a numpy.ndarray
-    y = dataset_balanceado['Class'].to_numpy()  # Convertir a numpy.ndarray
+    X = dataset_balanceado.drop(columns=['Class']).to_numpy()  # convertir a numpy array
+    y = dataset_balanceado['Class'].to_numpy()  # Convertir a numpy array
 
     # Separar en conjunto de entrenamiento y prueba
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.20)
 
-    # Ahora se evaluará con más procesos
+    # Definicion de los procesos
     threads = []
     N_THREADS = 7
     splits = nivelacion_cargas(combinations_rf, N_THREADS)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         threads.append(
             multiprocess.Process(target=evaluate_set, args=(splits[i], lock, X_train, y_train, X_test, y_test, results)))
 
-    start_time = time.perf_counter()
+    start_time = time.perf_counter()  # inicio de tiempo
 
     # Se lanzan a ejecución
     for thread in threads:
